@@ -1,0 +1,28 @@
+# Data and generated results
+Dataset/
+archive/
+OASIS1_outputs/
+outputs/
+cache/
+local/
+*.nii
+*.nii.gz
+*.img
+*.hdr
+*.tar
+*.tar.gz
+*.zip
+*.pt
+*.pth
+*.joblib
+*.npy
+*.npz
+
+# Python and notebook generated files
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Local configuration and temporary uploads
+.env
+.oasis_uploads/

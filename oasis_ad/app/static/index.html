@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OASIS-1 MRI Research Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body class="medical-app">
+
+  <!-- Top Navigation & Clinical Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="brand-badge">
+          <svg class="brand-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2a9 9 0 0 0-9 9c0 3.6 2.1 6.7 5.2 8.1l.8 2.9h6l.8-2.9C18.9 17.7 21 14.6 21 11a9 9 0 0 0-9-9z"/>
+            <path d="M9 10a3 3 0 0 1 6 0c0 2-2 3-2 4"/>
+            <circle cx="12" cy="18" r="0.6" fill="currentColor"/>
+          </svg>
+        </div>
+        <div class="brand-meta">
+          <div class="brand-row">
+            <h1 class="brand-name">NeuroTrust<span class="trademark">™</span></h1>
+            <span class="system-status-chip">
+              <span class="status-indicator-dot pulse"></span>
+              Research Prototype
+            </span>
+          </div>
+          <p class="brand-subtitle">3D MRI CDR Group Research Classification</p>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <!-- Model Telemetry Chips -->
+        <div class="telemetry-group">
+          <div class="badge-item">
+            <span class="badge-label">Architecture</span>
+            <span class="badge-value" id="hdr-arch">5-Fold 3D CNN</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-label">Conformal Target</span>
+            <span class="badge-value" id="hdr-coverage">90.0% Coverage</span>
+          </div>
+          <div class="badge-item">
+            <span class="badge-label">Device</span>
+            <span class="badge-value" id="hdr-device">CPU Inference</span>
+          </div>
+        </div>
+
+        <!-- Light / Dark Theme Switcher -->
+        <button id="theme-toggle" class="btn-icon" type="button" title="Toggle Theme (Clinical Light / Dark PACS)" aria-label="Toggle Theme">
+          <svg id="theme-icon-sun" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="23"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+            <line x1="1" y1="12" x2="3" y2="12"></line>
+            <line x1="21" y1="12" x2="23" y2="12"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+          </svg>
+          <svg id="theme-icon-moon" class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Clinical Regulatory Advisory Ribbon -->
+  <div class="regulatory-ribbon">
+    <div class="ribbon-inner">
+      <svg class="ribbon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/>
+        <line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span id="disclaimer-text">
+        RESEARCH PROTOTYPE • NOT AN INDEPENDENT MEDICAL DEVICE. Classifications are research labels based on the Clinical Dementia Rating (CDR) scale and do not constitute a standalone diagnosis of Alzheimer's disease.
+      </span>
+    </div>
+  </div>
+
+  <!-- Main Application Workspace -->
+  <main class="app-workspace">
+    
+    <!-- LEFT COLUMN: Diagnostic Intake Station -->
+    <aside class="intake-station">
+      <div class="station-card">
+        
+        <div class="station-header">
+          <div class="station-title-box">
+            <h2 class="station-title">Research Scan Input</h2>
+            <p class="station-subtitle">Provide a 3D T1-weighted volume for analysis</p>
+          </div>
+        </div>
+
+        <!-- Mode Navigation Tabs -->
+        <div class="intake-tabs">
+          <button id="tab-upload-btn" class="intake-tab active" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Upload Scan
+          </button>
+          <button id="tab-cohort-btn" class="intake-tab" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Cohort Library
+          </button>
+        </div>
+
+        <!-- TAB 1: Upload Volume -->
+        <div id="tab-upload-content" class="tab-pane active">
+          
+          <div class="drop-zone" id="dropzone">
+            <input type="file" id="files" multiple accept=".hdr,.img,.nii,.gz" class="file-native-input">
+            <div class="drop-zone-content">
+              <div class="drop-icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="12" y1="18" x2="12" y2="12"/>
+                  <line x1="9" y1="15" x2="12" y2="12"/>
+                  <line x1="15" y1="15" x2="12" y2="12"/>
+                </svg>
+              </div>
+              <div class="drop-primary-text">Drag & drop brain MRI scan here</div>
+              <div class="drop-secondary-text">or <span class="action-highlight">browse local files</span></div>
+              <div class="supported-formats-pills">
+                <span class="fmt-pill">NIfTI (.nii, .nii.gz)</span>
+                <span class="fmt-pill">Analyze 7.5 (.hdr + .img)</span>
+              </div>
+            </div>
+            <!-- File Attachment Chips -->
+            <div id="file-chips" class="file-chips-list" hidden></div>
+          </div>
+
+          <!-- Patient Demographics Form -->
+            <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr;">
+              <div class="form-field">
+                <label for="age">
+                  Patient Age
+                  <span class="optional-tag">Optional</span>
+                </label>
+                <div class="input-affix-group">
+                  <input type="number" id="age" min="18" max="115" placeholder="74">
+                  <span class="affix">yrs</span>
+                </div>
+              </div>
+
+              <div class="form-field">
+                <label for="sex">
+                  Sex
+                  <span class="optional-tag">Optional</span>
+                </label>
+                <select id="sex">
+                  <option value="">Unspecified</option>
+                  <option value="F">Female</option>
+                  <option value="M">Male</option>
+                </select>
+              </div>
+
+            </div>
+
+            <p class="demographic-notice">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              This research prototype classifies CDR-based study groups from MRI. It does not provide a clinical diagnosis.
+            </p>
+          </div>
+
+          <!-- Execution Action Button -->
+          <button id="run" class="btn-execute" type="button">
+            <span class="btn-spinner" hidden></span>
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              Run Research Analysis
+            </span>
+          </button>
+        </div>
+
+        <!-- TAB 2: Cohort Library & Quick Presets -->
+        <div id="tab-cohort-content" class="tab-pane">
+          
+          <!-- One-Click Instant Test Presets -->
+          <div class="presets-section">
+            <span class="section-micro-label">Quick Validation Presets</span>
+            <div class="preset-cards-grid">
+              
+              <button type="button" class="preset-card" data-pid="OAS1_0001">
+                <div class="preset-card-top">
+                  <span class="preset-badge normal">Normal (CDR 0)</span>
+                  <span class="preset-id">OAS1_0001</span>
+                </div>
+                <div class="preset-details">Female, 74 yrs • Control Scan</div>
+              </button>
+
+              <button type="button" class="preset-card" data-pid="OAS1_0028">
+                <div class="preset-card-top">
+                  <span class="preset-badge mild">Mild (CDR 0.5)</span>
+                  <span class="preset-id">OAS1_0028</span>
+                </div>
+                <div class="preset-details">Male, 74 yrs • Boundary Case</div>
+              </button>
+
+              <button type="button" class="preset-card" data-pid="OAS1_0148">
+                <div class="preset-card-top">
+                  <span class="preset-badge moderate">Moderate (CDR 1)</span>
+                  <span class="preset-id">OAS1_0148</span>
+                </div>
+                <div class="preset-details">Female, 78 yrs • Atrophy Finding</div>
+              </button>
+
+            </div>
+          </div>
+
+          <!-- Full Subject Selector -->
+          <div class="full-cohort-box">
+            <label for="examples">Or Browse All Cached Participants (200 Scans):</label>
+            <div class="select-wrapper">
+              <select id="examples">
+                <option value="">Querying local database...</option>
+              </select>
+            </div>
+            <p class="cohort-disclaimer" id="exwarn">
+              Cached subjects are study data used to verify interface behavior and Grad-CAM saliency.
+            </p>
+          </div>
+
+          <button id="runex" class="btn-execute secondary" type="button">
+            <span class="btn-spinner" hidden></span>
+            <span class="btn-text">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polygon points="10 8 16 12 10 16 10 8"/>
+              </svg>
+              Load & Process Selected Participant
+            </span>
+          </button>
+        </div>
+
+        <!-- Technical Telemetry Footer -->
+        <div class="engine-specs-card">
+          <div class="specs-title">Engine Specifications</div>
+          <div class="specs-grid">
+            <div class="spec-row">
+              <span class="spec-label">Model Type</span>
+              <span class="spec-val" id="info-arch">3D ResNet/Compact CNN</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Calibration</span>
+              <span class="spec-val">Temperature-Scaled Splitting</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">OOD Detector</span>
+              <span class="spec-val">Mahalanobis Latent Metric</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-label">Abstention Cutoff (&tau;)</span>
+              <span class="spec-val" id="info-tau">0.515</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT COLUMN: Clinical Decision & Visualization Suite -->
+    <section class="diagnostic-display">
+      
+      <!-- Progress Stepper (Visible during evaluation) -->
+      <div id="pipeline-stepper" class="pipeline-stepper-card" hidden>
+        <div class="stepper-header">
+          <div class="stepper-title-row">
+            <span class="stepper-spinner"></span>
+            <h3 class="stepper-heading">Executing Clinical AI Inference Pipeline...</h3>
+          </div>
+          <span class="stepper-timer" id="stepper-status">Processing 3D Tensor</span>
+        </div>
+        <div class="stepper-steps">
+          <div class="step-item active" id="st-1">
+            <span class="step-dot"></span>
+            <span class="step-text">Image QC & Alignment</span>
+          </div>
+          <div class="step-item active" id="st-2">
+            <span class="step-dot"></span>
+            <span class="step-text">5-Fold 3D CNN Ensemble</span>
+          </div>
+          <div class="step-item active" id="st-3">
+            <span class="step-dot"></span>
+            <span class="step-text">Uncertainty & Conformal Sets</span>
+          </div>
+          <div class="step-item active" id="st-4">
+            <span class="step-dot"></span>
+            <span class="step-text">3-Plane Grad-CAM Synthesis</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Initial Empty State -->
+      <div id="empty-state" class="empty-display-card">
+        <div class="empty-hero-graphic">
+          <div class="pulse-ring"></div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+            <line x1="12" y1="17" x2="12" y2="21"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+        </div>
+        <h3 class="empty-title">Research Analysis Ready</h3>
+        <p class="empty-desc">
+          Drop a brain MRI volume or click any of the <strong>Quick Validation Presets</strong> on the left to evaluate risk scores, uncertainty bounds, and Grad-CAM saliency.
+        </p>
+        <div class="empty-features-list">
+          <span class="feat-tag">✓ Conformal target coverage: 90%</span>
+          <span class="feat-tag">✓ Out-of-Distribution Rejection</span>
+          <span class="feat-tag">✓ Grad-CAM inspection view</span>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="err" class="alert-banner error" hidden>
+        <div class="alert-icon-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="alert-content">
+          <h4 id="err-title" class="alert-title">Processing Halted</h4>
+          <p id="err-msg" class="alert-text"></p>
+        </div>
+      </div>
+
+      <!-- Active Diagnostic Report Container -->
+      <div id="result" class="report-container" hidden>
+
+        <!-- Clinical Patient & Action Header -->
+        <div class="report-header-bar">
+          <div class="report-subject-info">
+            <span class="session-badge" id="report-session-id">SCAN SESSION: #OAS-EVAL</span>
+            <h2 class="report-patient-name" id="report-patient-title">Patient MRI Evaluation</h2>
+            <span class="report-date" id="report-timestamp">Timestamp: --</span>
+          </div>
+          <div class="report-actions">
+            <button class="btn-action" id="btn-print" type="button" title="Print or Export PDF Report">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+              </svg>
+              Print Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Primary Clinical Verdict Banner (Single-Modality 3D CNN) -->
+        <div id="verdict-banner" class="verdict-banner-card verdict-ok">
+          <div class="verdict-status-row">
+            <span class="verdict-badge" id="verdict-pill">SINGLE-MODALITY 3D CNN ASSESSMENT</span>
+            <span class="verdict-model-consensus" id="verdict-meta">Ensemble Consensus</span>
+          </div>
+          <h1 id="decision-text" class="verdict-primary-text">Evaluating Assessment...</h1>
+          <div id="reasons-list" class="verdict-chips-row"></div>
+        </div>
+
+        <!-- 4-Card Safety & Uncertainty Matrix -->
+        <div class="uncertainty-matrix">
+          
+          <div class="matrix-card">
+            <div class="matrix-card-header">
+              <span class="matrix-title">Calibrated Confidence</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20v-6M6 20V10M18 20V4"/></svg>
+            </div>
+            <div class="matrix-val-primary" id="val-conf">--</div>
+            <div class="matrix-subtext" id="sub-conf">Temperature-scaled posterior</div>
+          </div>
+
+          <div class="matrix-card">
+            <div class="matrix-card-header">
+              <span class="matrix-title">Conformal Prediction Set</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 12 2 2 4-4"/></svg>
+            </div>
+            <div class="matrix-val-primary text-wrap" id="val-conformal">--</div>
+            <div class="matrix-subtext" id="sub-conformal">90.0% Target Coverage</div>
+          </div>
+
+          <div class="matrix-card">
+            <div class="matrix-card-header">
+              <span class="matrix-title">OOD Anomaly Detection</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            </div>
+            <div class="matrix-val-primary" id="val-ood">--</div>
+            <div class="matrix-subtext" id="sub-ood">Mahalanobis latent distance</div>
+          </div>
+
+          <div class="matrix-card">
+            <div class="matrix-card-header">
+              <span class="matrix-title">Model Disagreement (SD)</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="matrix-val-primary" id="val-disagreement">--</div>
+            <div class="matrix-subtext">5-Fold inter-model variance</div>
+          </div>
+
+        </div>
+
+        <!-- 3-Plane Grad-CAM Radiology Saliency Stage -->
+        <div class="pacs-viewer-card" id="saliency-card">
+          <div class="pacs-header">
+            <div>
+              <h3 class="pacs-title">3-Plane Anatomical Focus & Saliency (Grad-CAM)</h3>
+              <p class="pacs-subtitle">Visual explanation of regions driving model posterior probabilities</p>
+            </div>
+            <div class="pacs-controls">
+              <div class="colormap-legend">
+                <span>Low Focus</span>
+                <div class="colormap-bar"></div>
+                <span>Peak Activation</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="pacs-screen-frame">
+            <img id="cam-img" alt="Grad-CAM 3-Plane Visualization">
+            <div class="plane-markers-row">
+              <span class="plane-marker"><span class="dot"></span> Axial Plane (Transverse)</span>
+              <span class="plane-marker"><span class="dot"></span> Coronal Plane (Frontal)</span>
+              <span class="plane-marker"><span class="dot"></span> Sagittal Plane (Lateral)</span>
+            </div>
+          </div>
+
+          <div class="pacs-footer-note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+            <span>Grad-CAM heatmaps highlight neural activation areas and must be interpreted alongside anatomical T1 imaging by qualified radiologists.</span>
+          </div>
+        </div>
+
+        <!-- Posterior Probabilities & Demographic Baseline Section -->
+        <div class="risk-distribution-card">
+          <div class="distribution-header">
+            <h3 class="distribution-title">Posterior Probability Distribution</h3>
+            <span class="distribution-badge">Calibrated Probabilities</span>
+          </div>
+          <div id="probs-bars" class="probability-bars-container"></div>
+
+          <!-- Demographic Prior Comparison -->
+          <div id="baseline-section" class="baseline-comparison-box" hidden>
+            <div class="baseline-box-header">
+              <div class="baseline-box-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+                <span>Normative Demographic Baseline (Age & Sex Alone)</span>
+              </div>
+              <span class="baseline-tag">Baseline Context</span>
+            </div>
+            <p id="baseline-note" class="baseline-note-text"></p>
+            <div id="baseline-bars" class="probability-bars-container"></div>
+          </div>
+        </div>
+
+        <!-- Automated Scan Quality Control Table -->
+        <div class="qc-audit-card">
+          <div class="qc-audit-header">
+            <div>
+              <h3 class="qc-audit-title">Pre-Flight Scan Quality Control (QC)</h3>
+              <p class="qc-audit-sub">Automated verification of brain-masking, intensity distribution, and gradient SNR</p>
+            </div>
+            <span id="qc-badge" class="badge-status ok">Passed</span>
+          </div>
+          <p id="qc-detail" class="qc-summary-desc"></p>
+
+          <div class="table-container">
+            <table class="clinical-data-table">
+              <thead>
+                <tr>
+                  <th>QC Indicator</th>
+                  <th>Observed Value</th>
+                  <th>Clinical Tolerance Interval</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="qc-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Report Sign-off & Audit Trail -->
+        <div class="report-signoff-card">
+          <div class="signoff-col">
+            <span class="signoff-label">Reference OASIS Label:</span>
+            <strong id="ref-cdr-label">None (External Upload)</strong>
+          </div>
+          <div class="signoff-col">
+            <span class="signoff-label">Safety Decision Logic:</span>
+            <span>Temperature Scaling + Conformal Rejection</span>
+          </div>
+          <div class="signoff-col">
+            <span class="signoff-label">Audit Hash:</span>
+            <span class="mono-hash" id="audit-hash">--</span>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+  </main>
+
+  <script src="static/app.js"></script>
+</body>
+</html>

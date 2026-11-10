@@ -1,0 +1,17 @@
+# Colab already has torch, numpy, pandas, scikit-learn, scipy, matplotlib.
+# The notebooks run:  pip install -q -r requirements.txt   (only missing packages are installed)
+torch
+numpy
+pandas
+scipy
+scikit-learn
+matplotlib
+pyyaml
+openpyxl
+nibabel
+torchio
+joblib
+tqdm
+fastapi
+uvicorn
+python-multipart

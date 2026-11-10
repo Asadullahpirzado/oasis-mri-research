@@ -1,0 +1,84 @@
+# ───────────────────────────────────────────────────────────────────────────────
+# OASIS-1 trustworthy MRI classification - main configuration
+# Edit the three paths below; everything else can stay as it is.
+# ───────────────────────────────────────────────────────────────────────────────
+paths:
+  data_dir: /content/drive/MyDrive/OASIS1            # Drive folder holding the 12 disc archives (+ clinical file)
+  out_dir: /content/drive/MyDrive/OASIS1_outputs     # all results/checkpoints are written here (on Drive)
+  local_dir: /content/oasis_local                    # fast local disk (extracted scans, cache copy)
+  clinical_file: null                                # null = auto-detect (oasis_cross-sectional*.csv / .xlsx)
+  medicalnet_weights: null                           # optional: path to resnet_10_23dataset.pth (MedicalNet)
+  foundation_encoder: null                           # optional: TorchScript encoder of a brain-MRI foundation model
+
+task:
+  mode: binary            # binary (CDR 0 vs >0, PRIMARY)  |  three_class (CDR 0 / 0.5 / >=1, SECONDARY)
+  min_age: 60             # labelled analysis cohort = age >= min_age ; younger = OOD set only
+
+data:
+  t88_suffix: "_t88_masked_gfc"     # processed (bias-corrected, atlas-registered, brain-masked) volume
+  seg_suffix: "_fseg"               # FSL tissue segmentation (0 bg, 1 CSF, 2 GM, 3 WM) - saliency interpretation only
+  expected_shape: [176, 208, 176]   # OASIS-1 T88_111 grid; other shapes are flagged by QC
+  use_mr1_only: true                # one scan per participant (MR2 repeat scans are excluded and logged)
+
+preprocess:
+  target_shape: [88, 104, 88]       # half resolution of the atlas grid (aspect ratio preserved)
+
+qc:
+  brain_frac_range: [0.05, 0.50]
+  robust_z_limit: 5.0
+
+cv:
+  n_splits: 5
+  n_repeats: 3
+  seed: 42
+  val_frac: 0.15            # inner split of the TRAINING part: early stopping + temperature scaling
+  calib_frac: 0.15          # inner split of the TRAINING part: conformal quantile + rejection threshold
+  stratify_age_band: true
+
+train:
+  models: [cnn3d]           # any of: cnn3d, cnn2d, resnet10, foundation
+  epochs: 80
+  patience: 15
+  batch_size: 4
+  accum_steps: 1
+  lr: 0.0003
+  weight_decay: 0.0001
+  class_weighting: true
+  amp: true                 # mixed precision on GPU
+  mc_passes: 30             # Monte Carlo dropout passes
+  input_variant: full       # full | mask_only | eroded  (ablations only - keep 'full' for the main study)
+  augment: {p: 0.5, shift_vox: 3, intensity_scale: 0.1, noise_std: 0.05}
+
+models:
+  cnn3d:      {width: 16, dropout: 0.4, spatial_dropout: 0.1}
+  resnet10:   {pretrained: true, dropout: 0.4}
+  cnn2d:      {slice_axis: 2, slice_fractions: [0.35, 0.42, 0.50, 0.58, 0.65], width: 16, dropout: 0.4}
+  foundation: {feat_dim: 768, dropout: 0.4}
+
+uncertainty:
+  target_coverage: 0.90     # conformal: 1 - alpha
+  selective_coverage: 0.90  # share of calibration cases kept by the rejection threshold
+
+ood:
+  severities: [0.2, 0.4, 0.6, 0.8, 1.0]
+  n_per_cell: 8             # test volumes corrupted per (corruption, severity, fold)
+  thresh_percentile: 95     # OOD flag threshold = this percentile of calibration-set scores
+  corruptions: [noise, blur, motion, ghosting, bias_field, low_res]
+  folds_used: 5             # number of folds of repeat 0 used for OOD analysis (<= cv.n_splits)
+
+eval:
+  age_bands: [[60, 69], [70, 79], [80, 120]]
+  age_match_caliper: 3
+  n_boot: 1000
+
+app:
+  port: 8000
+  bundle_repeat: 0          # repeat whose fold-models form the demo ensemble
+
+stability:
+  n_cases: 40               # test cases for the Grad-CAM perturbation-stability analysis (correct vs wrong predictions)
+
+ablation:
+  n_repeats: 1              # CV repeats per ablation variant (saves time)
+  variants: [no_augmentation, no_class_weighting, mask_only_input, eroded_boundary_input, cnn2d_slices]
+  # also available: resnet10_scratch, resnet10_medicalnet (needs paths.medicalnet_weights)
